@@ -17,11 +17,8 @@
 
 
 start(_Type, _Args) ->
-  Pools = application:get_env(emqx_backend_timescale,
-    pools,
-    []),
-  {ok, Sup} =
-    emqx_backend_timescale_sup:start_link(Pools),
+  Pools = application:get_env(emqx_backend_timescale, pools, []),
+  {ok, Sup} = emqx_backend_timescale_sup:start_link(Pools),
   emqx_backend_timescale:register_metrics(),
   emqx_backend_timescale:load(),
   {ok, Sup}.

@@ -29,8 +29,7 @@ pgsql_insert(Pool, Data) ->
     fun (C) ->
       [case is_list(lists:last(Params)) of
          true ->
-           [epgsql:prepared_query(C, Name, Param)
-             || Param <- Params];
+           [epgsql:prepared_query(C, Name, Param) || Param <- Params];
          false ->
            epgsql:prepared_query(C, Name, Params)
        end
@@ -38,37 +37,18 @@ pgsql_insert(Pool, Data) ->
     end).
 
 get_templates() ->
-  FilePath = filename:join([application:get_env(emqx,
-    data_dir,
-    "./"),
-    "templates",
-    emqx_backend_timescale])
-    ++ ".tmpl",
+  FilePath = filename:join([application:get_env(emqx, data_dir, "./"), "templates", emqx_backend_timescale]) ++ ".tmpl",
   case file:read_file(FilePath) of
     {error, Reason} ->
       begin
-        logger:log(error,
-          #{},
-          #{report_cb =>
-          fun (_) ->
-            {logger_header()() ++
-              "Read ~p failed due to: ~p",
-              [FilePath, posix_errno(Reason)]}
-          end,
-            mfa =>
-            {emqx_backend_timescale_cli, get_templates, 0},
-            line => 40})
+        logger:log(error, #{}, #{report_cb => fun (_) -> {logger_header()() ++ "Read ~p failed due to: ~p", [FilePath, posix_errno(Reason)]} end,
+            mfa => {emqx_backend_timescale_cli, get_templates, 0}, line => 40})
       end,
       #{};
     {ok, <<>>} ->
       begin
-        logger:log(debug,
-          #{},
-          #{report_cb =>
-          fun (_) ->
-            {logger_header()() ++ "~p is empty",
-              [FilePath]}
-          end,
+        logger:log(debug, #{}, #{report_cb =>
+          fun (_) -> {logger_header()() ++ "~p is empty", [FilePath]} end,
             mfa =>
             {emqx_backend_timescale_cli, get_templates, 0},
             line => 43})
@@ -86,8 +66,7 @@ get_templates() ->
         Templates)
   end.
 
-prepare_data(Message = #message{topic = Topic},
-    Templates) ->
+prepare_data(Message = #message{topic = Topic}, Templates) ->
   case lists:foldl(fun ({Topic0, Template}, Acc) ->
     case emqx_topic:match(Topic, Topic0) of
       true -> [Template | Acc];
@@ -117,9 +96,7 @@ connect(Opts) ->
   parse_sql(C),
   {ok, C}.
 
-available_fields(#message{id = Id, qos = QoS,
-  from = ClientId, headers = Headers, topic = Topic,
-  payload = Payload, timestamp = Timestamp}) ->
+available_fields(#message{id = Id, qos = QoS, from = ClientId, headers = Headers, topic = Topic, payload = Payload, timestamp = Timestamp}) ->
   #{<<"$id">> => Id, <<"$qos">> => QoS,
     <<"$clientid">> => ClientId,
     <<"$username">> =>
